@@ -1,28 +1,26 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
     public class GenresController : Controller
     {
-        private readonly DatabaseContext _context;
+        private readonly GenreService _genreService;
 
-        public GenresController(DatabaseContext context)
+        public GenresController(GenreService genreService)
         {
-            _context = context;
+            _genreService = genreService;
         }
 
         // GET: Genres
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Genres.ToListAsync());
+            return View(await _genreService.GetGenres());
         }
 
         // GET: Genres/Details/5
@@ -33,8 +31,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var genre = await _context.Genres
-                .FirstOrDefaultAsync(m => m.GenreId == id);
+            var genre = id.HasValue ? await _genreService.GetGenre(id.Value) : null;
             if (genre == null)
             {
                 return NotFound();
@@ -58,8 +55,7 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(genre);
-                await _context.SaveChangesAsync();
+                await _genreService.AddAndSave(genre);
                 return RedirectToAction(nameof(Index));
             }
             return View(genre);
@@ -73,7 +69,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var genre = await _context.Genres.FindAsync(id);
+            var genre = id.HasValue ? await _genreService.GetGenre(id.Value) : null;
             if (genre == null)
             {
                 return NotFound();
@@ -97,12 +93,11 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    _context.Update(genre);
-                    await _context.SaveChangesAsync();
+                    await _genreService.UpdateAndSave(genre);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!GenreExists(genre.GenreId))
+                    if (!_genreService.GenreExists(genre.GenreId))
                     {
                         return NotFound();
                     }
@@ -124,8 +119,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var genre = await _context.Genres
-                .FirstOrDefaultAsync(m => m.GenreId == id);
+            var genre = id.HasValue ? await _genreService.GetGenre(id.Value) : null;
             if (genre == null)
             {
                 return NotFound();
@@ -139,15 +133,8 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var genre = await _context.Genres.FindAsync(id);
-            _context.Genres.Remove(genre);
-            await _context.SaveChangesAsync();
+            await _genreService.DeleteAndSave(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool GenreExists(int id)
-        {
-            return _context.Genres.Any(e => e.GenreId == id);
         }
     }
 }

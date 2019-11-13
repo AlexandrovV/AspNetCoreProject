@@ -7,22 +7,23 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
     public class DirectorsController : Controller
     {
-        private readonly DatabaseContext _context;
+        private readonly DirectorService _directorService;
 
-        public DirectorsController(DatabaseContext context)
+        public DirectorsController(DirectorService directorService)
         {
-            _context = context;
+            _directorService = directorService;
         }
 
         // GET: Directors
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Directors.ToListAsync());
+            return View(await _directorService.GetDirectors());
         }
 
         // GET: Directors/Details/5
@@ -33,8 +34,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var director = await _context.Directors
-                .FirstOrDefaultAsync(m => m.DirectorId == id);
+            var director = id.HasValue ? await _directorService.GetDirector(id.Value) : null;
             if (director == null)
             {
                 return NotFound();
@@ -58,8 +58,7 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(director);
-                await _context.SaveChangesAsync();
+                await _directorService.AddAndSave(director);
                 return RedirectToAction(nameof(Index));
             }
             return View(director);
@@ -73,7 +72,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var director = await _context.Directors.FindAsync(id);
+            var director = id.HasValue ? await _directorService.GetDirector(id.Value) : null;
             if (director == null)
             {
                 return NotFound();
@@ -97,12 +96,11 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    _context.Update(director);
-                    await _context.SaveChangesAsync();
+                    await _directorService.UpdateAndSave(director);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!DirectorExists(director.DirectorId))
+                    if (!_directorService.DirectorExists(director.DirectorId)) // TODO rework
                     {
                         return NotFound();
                     }
@@ -124,8 +122,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var director = await _context.Directors
-                .FirstOrDefaultAsync(m => m.DirectorId == id);
+            var director = id.HasValue ? await _directorService.GetDirector(id.Value) : null;
             if (director == null)
             {
                 return NotFound();
@@ -139,15 +136,8 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var director = await _context.Directors.FindAsync(id);
-            _context.Directors.Remove(director);
-            await _context.SaveChangesAsync();
+            await _directorService.DeleteAndSave(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool DirectorExists(int id)
-        {
-            return _context.Directors.Any(e => e.DirectorId == id);
         }
     }
 }

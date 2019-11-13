@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WebApplication1.Data;
+using WebApplication1.Services;
 
 namespace WebApplication1
 {
@@ -39,6 +40,20 @@ namespace WebApplication1
             });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddScoped<ActorService>();
+            services.AddScoped<DirectorService>();
+            services.AddScoped<GenreService>();
+            services.AddScoped<StudioService>();
+            services.AddScoped<ReviewerService>();
+            services.AddScoped<ReviewService>();
+            services.AddScoped<MovieService>();
+            services.AddScoped<IActorRepository, ActorRepository>();
+            services.AddScoped<IDirectorRepository, DirectorRepository>();
+            services.AddScoped<IGenreRepository, GenreRepository>();
+            services.AddScoped<IStudioRepository, StudioRepository>();
+            services.AddScoped<IReviewerRepository, ReviewerRepository>();
+            services.AddScoped<IReviewRepository, ReviewRepository>();
+            services.AddScoped<IMovieRepository, MovieRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

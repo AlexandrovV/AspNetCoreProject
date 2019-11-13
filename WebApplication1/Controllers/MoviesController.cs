@@ -7,23 +7,29 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
     public class MoviesController : Controller
     {
-        private readonly DatabaseContext _context;
+        
+        private readonly MovieService _movieService;
+        private readonly DirectorService _directorService;
+        private readonly StudioService _studioService;
 
-        public MoviesController(DatabaseContext context)
+
+        public MoviesController(MovieService movieService, DirectorService directorService, StudioService studioService)
         {
-            _context = context;
+            _movieService = movieService;
+            _directorService = directorService;
+            _studioService = studioService;
         }
 
         // GET: Movies
         public async Task<IActionResult> Index()
         {
-            var databaseContext = _context.Movies.Include(m => m.Director).Include(m => m.Studio);
-            return View(await databaseContext.ToListAsync());
+            return View(await _movieService.GetMovies());
         }
 
         // GET: Movies/Details/5
@@ -34,10 +40,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var movie = await _context.Movies
-                .Include(m => m.Director)
-                .Include(m => m.Studio)
-                .FirstOrDefaultAsync(m => m.MovieId == id);
+            var movie = id.HasValue ? await _movieService.GetMovie(id.Value) : null;
             if (movie == null)
             {
                 return NotFound();
@@ -47,10 +50,10 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Movies/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["DirectorId"] = new SelectList(_context.Directors, "DirectorId", "Name");
-            ViewData["StudioId"] = new SelectList(_context.Studios, "StudioId", "Name");
+            ViewData["DirectorId"] = new SelectList(await _directorService.GetDirectors(), "DirectorId", "Name");
+            ViewData["StudioId"] = new SelectList(await _studioService.GetStudios(), "StudioId", "Name");
             return View();
         }
 
@@ -63,12 +66,11 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(movie);
-                await _context.SaveChangesAsync();
+                _movieService.AddAndSave(movie);
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["DirectorId"] = new SelectList(_context.Directors, "DirectorId", "Name", movie.DirectorId);
-            ViewData["StudioId"] = new SelectList(_context.Studios, "StudioId", "Name", movie.StudioId);
+            ViewData["DirectorId"] = new SelectList(await _directorService.GetDirectors(), "DirectorId", "Name", movie.DirectorId);
+            ViewData["StudioId"] = new SelectList(await _studioService.GetStudios(), "StudioId", "Name", movie.StudioId);
             return View(movie);
         }
 
@@ -80,13 +82,13 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var movie = await _context.Movies.FindAsync(id);
+            var movie = id.HasValue ? await _movieService.GetMovie(id.Value) : null;
             if (movie == null)
             {
                 return NotFound();
             }
-            ViewData["DirectorId"] = new SelectList(_context.Directors, "DirectorId", "Name", movie.DirectorId);
-            ViewData["StudioId"] = new SelectList(_context.Studios, "StudioId", "Name", movie.StudioId);
+            ViewData["DirectorId"] = new SelectList(await _directorService.GetDirectors(), "DirectorId", "Name", movie.DirectorId);
+            ViewData["StudioId"] = new SelectList(await _studioService.GetStudios(), "StudioId", "Name", movie.StudioId);
             return View(movie);
         }
 
@@ -106,12 +108,11 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    _context.Update(movie);
-                    await _context.SaveChangesAsync();
+                    _movieService.UpdateAndSave(movie);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!MovieExists(movie.MovieId))
+                    if (!_movieService.MovieExists(movie.MovieId))
                     {
                         return NotFound();
                     }
@@ -122,8 +123,8 @@ namespace WebApplication1.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["DirectorId"] = new SelectList(_context.Directors, "DirectorId", "Name", movie.DirectorId);
-            ViewData["StudioId"] = new SelectList(_context.Studios, "StudioId", "Name", movie.StudioId);
+            ViewData["DirectorId"] = new SelectList(await _directorService.GetDirectors(), "DirectorId", "Name", movie.DirectorId);
+            ViewData["StudioId"] = new SelectList(await _studioService.GetStudios(), "StudioId", "Name", movie.StudioId);
             return View(movie);
         }
 
@@ -135,10 +136,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var movie = await _context.Movies
-                .Include(m => m.Director)
-                .Include(m => m.Studio)
-                .FirstOrDefaultAsync(m => m.MovieId == id);
+            var movie = id.HasValue ? await _movieService.GetMovie(id.Value) : null;
             if (movie == null)
             {
                 return NotFound();
@@ -152,15 +150,8 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var movie = await _context.Movies.FindAsync(id);
-            _context.Movies.Remove(movie);
-            await _context.SaveChangesAsync();
+            _movieService.DeleteAndSave(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool MovieExists(int id)
-        {
-            return _context.Movies.Any(e => e.MovieId == id);
         }
     }
 }

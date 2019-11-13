@@ -7,23 +7,27 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
     public class ReviewsController : Controller
     {
-        private readonly DatabaseContext _context;
+        private readonly ReviewService _reviewService;
+        private readonly ReviewerService _reviewerService;
+        private readonly MovieService _movieService;
 
-        public ReviewsController(DatabaseContext context)
+        public ReviewsController(ReviewService reviewService, ReviewerService reviewerService, MovieService movieService)
         {
-            _context = context;
+            _reviewService = reviewService;
+            _reviewerService = reviewerService;
+            _movieService = movieService;
         }
 
         // GET: Reviews
         public async Task<IActionResult> Index()
         {
-            var databaseContext = _context.Reviews.Include(r => r.Movie).Include(r => r.Reviewer);
-            return View(await databaseContext.ToListAsync());
+            return View(await _reviewService.GetReviews());
         }
 
         // GET: Reviews/Details/5
@@ -34,10 +38,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var review = await _context.Reviews
-                .Include(r => r.Movie)
-                .Include(r => r.Reviewer)
-                .FirstOrDefaultAsync(m => m.ReviewId == id);
+            var review = id.HasValue ? await _reviewService.GetReview(id.Value) : null;
             if (review == null)
             {
                 return NotFound();
@@ -47,10 +48,11 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Reviews/Create
-        public IActionResult Create()
+        //TODO это может сломать
+        public async Task<IActionResult> Create()
         {
-            ViewData["MovieId"] = new SelectList(_context.Movies, "MovieId", "Name");
-            ViewData["ReviewerId"] = new SelectList(_context.Reviewers, "ReviewerId", "Name");
+            ViewData["MovieId"] = new SelectList(await _movieService.GetMovies(), "MovieId", "Name");
+            ViewData["ReviewerId"] = new SelectList(await _reviewerService.GetReviewers(), "ReviewerId", "Name");
             return View();
         }
 
@@ -63,12 +65,11 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(review);
-                await _context.SaveChangesAsync();
+                _reviewService.AddAndSave(review);
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MovieId"] = new SelectList(_context.Movies, "MovieId", "Name", review.MovieId);
-            ViewData["ReviewerId"] = new SelectList(_context.Reviewers, "ReviewerId", "Name", review.ReviewerId);
+            ViewData["MovieId"] = new SelectList(await _movieService.GetMovies(), "MovieId", "Name", review.MovieId);
+            ViewData["ReviewerId"] = new SelectList(await _reviewerService.GetReviewers(), "ReviewerId", "Name", review.ReviewerId);
             return View(review);
         }
 
@@ -80,13 +81,13 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var review = await _context.Reviews.FindAsync(id);
+            var review = await _reviewService.GetReview(id.Value);
             if (review == null)
             {
                 return NotFound();
             }
-            ViewData["MovieId"] = new SelectList(_context.Movies, "MovieId", "Name", review.MovieId);
-            ViewData["ReviewerId"] = new SelectList(_context.Reviewers, "ReviewerId", "Name", review.ReviewerId);
+            ViewData["MovieId"] = new SelectList(await _movieService.GetMovies(), "MovieId", "Name", review.MovieId);
+            ViewData["ReviewerId"] = new SelectList(await _reviewerService.GetReviewers(), "ReviewerId", "Name", review.ReviewerId);
             return View(review);
         }
 
@@ -106,12 +107,11 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    _context.Update(review);
-                    await _context.SaveChangesAsync();
+                    _reviewService.UpdateAndSave(review);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ReviewExists(review.ReviewId))
+                    if (!_reviewService.ReviewExists(review.ReviewId))
                     {
                         return NotFound();
                     }
@@ -122,8 +122,8 @@ namespace WebApplication1.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MovieId"] = new SelectList(_context.Movies, "MovieId", "Name", review.MovieId);
-            ViewData["ReviewerId"] = new SelectList(_context.Reviewers, "ReviewerId", "Name", review.ReviewerId);
+            ViewData["MovieId"] = new SelectList(await _movieService.GetMovies(), "MovieId", "Name", review.MovieId);
+            ViewData["ReviewerId"] = new SelectList(await _reviewerService.GetReviewers(), "ReviewerId", "Name", review.ReviewerId);
             return View(review);
         }
 
@@ -135,10 +135,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var review = await _context.Reviews
-                .Include(r => r.Movie)
-                .Include(r => r.Reviewer)
-                .FirstOrDefaultAsync(m => m.ReviewId == id);
+            var review = id.HasValue ? await _reviewService.GetReview(id.Value) : null;
             if (review == null)
             {
                 return NotFound();
@@ -152,15 +149,8 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var review = await _context.Reviews.FindAsync(id);
-            _context.Reviews.Remove(review);
-            await _context.SaveChangesAsync();
+            _reviewService.DeleteAndSave(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool ReviewExists(int id)
-        {
-            return _context.Reviews.Any(e => e.ReviewId == id);
         }
     }
 }

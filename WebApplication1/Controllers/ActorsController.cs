@@ -7,31 +7,28 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
     public class ActorsController : Controller
     {
-        private readonly DatabaseContext _context;
+        private readonly ActorService _actorService;
 
-        public ActorsController(DatabaseContext context)
+        public ActorsController(ActorService actorService)
         {
-            _context = context;
+            _actorService = actorService;
         }
 
         // GET: Actors
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Actors.ToListAsync());
+            return View(await _actorService.GetActors());
         }
 
         public async Task<IActionResult> CheckActorName(string name)
         {
-            if (name == "Vladislav Alexandrov")
-            {
-                return Json(false);
-            }
-            return Json(true);
+            return Json(_actorService.CheckActorName(name));
         }
 
         // GET: Actors/Details/5
@@ -42,8 +39,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var actor = await _context.Actors
-                .FirstOrDefaultAsync(m => m.ActorId == id);
+            var actor = id.HasValue ? await _actorService.GetActor(id.Value) : null;
             if (actor == null)
             {
                 return NotFound();
@@ -67,8 +63,7 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(actor);
-                await _context.SaveChangesAsync();
+                await _actorService.AddAndSave(actor);
                 return RedirectToAction(nameof(Index));
             }
             return View(actor);
@@ -82,7 +77,8 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var actor = await _context.Actors.FindAsync(id);
+            var actor = id.HasValue ? await _actorService.GetActor(id.Value) : null;
+
             if (actor == null)
             {
                 return NotFound();
@@ -106,12 +102,11 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    _context.Update(actor);
-                    await _context.SaveChangesAsync();
+                    await _actorService.UpdateAndSave(actor);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ActorExists(actor.ActorId))
+                    if (!_actorService.ActorExists(actor.ActorId))
                     {
                         return NotFound();
                     }
@@ -133,8 +128,8 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var actor = await _context.Actors
-                .FirstOrDefaultAsync(m => m.ActorId == id);
+            var actor = id.HasValue ? await _actorService.GetActor(id.Value) : null;
+
             if (actor == null)
             {
                 return NotFound();
@@ -148,15 +143,8 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var actor = await _context.Actors.FindAsync(id);
-            _context.Actors.Remove(actor);
-            await _context.SaveChangesAsync();
+            await _actorService.DeleteAndSave(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool ActorExists(int id)
-        {
-            return _context.Actors.Any(e => e.ActorId == id);
         }
     }
 }

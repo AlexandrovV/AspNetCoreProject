@@ -7,22 +7,23 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
     public class ReviewersController : Controller
     {
-        private readonly DatabaseContext _context;
+        private readonly ReviewerService _reviewerService;
 
-        public ReviewersController(DatabaseContext context)
+        public ReviewersController(ReviewerService reviewerService)
         {
-            _context = context;
+            _reviewerService = reviewerService;
         }
 
         // GET: Reviewers
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Reviewers.ToListAsync());
+            return View(await _reviewerService.GetReviewers());
         }
 
         // GET: Reviewers/Details/5
@@ -33,8 +34,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var reviewer = await _context.Reviewers
-                .FirstOrDefaultAsync(m => m.ReviewerId == id);
+            var reviewer = id.HasValue ? await _reviewerService.GetReviewer(id.Value) : null;
             if (reviewer == null)
             {
                 return NotFound();
@@ -58,8 +58,7 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(reviewer);
-                await _context.SaveChangesAsync();
+                await _reviewerService.AddAndSave(reviewer);
                 return RedirectToAction(nameof(Index));
             }
             return View(reviewer);
@@ -73,7 +72,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var reviewer = await _context.Reviewers.FindAsync(id);
+            var reviewer = id.HasValue ? await _reviewerService.GetReviewer(id.Value) : null;
             if (reviewer == null)
             {
                 return NotFound();
@@ -97,12 +96,11 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    _context.Update(reviewer);
-                    await _context.SaveChangesAsync();
+                    await _reviewerService.UpdateAndSave(reviewer);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ReviewerExists(reviewer.ReviewerId))
+                    if (!_reviewerService.ReviewerExists(reviewer.ReviewerId))
                     {
                         return NotFound();
                     }
@@ -124,8 +122,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var reviewer = await _context.Reviewers
-                .FirstOrDefaultAsync(m => m.ReviewerId == id);
+            var reviewer = id.HasValue ? await _reviewerService.GetReviewer(id.Value) : null;
             if (reviewer == null)
             {
                 return NotFound();
@@ -139,15 +136,8 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var reviewer = await _context.Reviewers.FindAsync(id);
-            _context.Reviewers.Remove(reviewer);
-            await _context.SaveChangesAsync();
+            await _reviewerService.DeleteAndSave(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool ReviewerExists(int id)
-        {
-            return _context.Reviewers.Any(e => e.ReviewerId == id);
         }
     }
 }

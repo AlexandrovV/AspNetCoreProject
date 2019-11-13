@@ -7,22 +7,23 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
     public class StudiosController : Controller
     {
-        private readonly DatabaseContext _context;
+        private readonly StudioService _studioService;
 
-        public StudiosController(DatabaseContext context)
+        public StudiosController(StudioService studioService)
         {
-            _context = context;
+            _studioService = studioService;
         }
 
         // GET: Studios
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Studios.ToListAsync());
+            return View(await _studioService.GetStudios());
         }
 
         // GET: Studios/Details/5
@@ -33,8 +34,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var studio = await _context.Studios
-                .FirstOrDefaultAsync(m => m.StudioId == id);
+            var studio = id.HasValue ? await _studioService.GetStudio(id.Value) : null;
             if (studio == null)
             {
                 return NotFound();
@@ -58,8 +58,7 @@ namespace WebApplication1.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(studio);
-                await _context.SaveChangesAsync();
+                await _studioService.AddAndSave(studio);
                 return RedirectToAction(nameof(Index));
             }
             return View(studio);
@@ -73,7 +72,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var studio = await _context.Studios.FindAsync(id);
+            var studio = id.HasValue ? await _studioService.GetStudio(id.Value) : null;
             if (studio == null)
             {
                 return NotFound();
@@ -97,12 +96,11 @@ namespace WebApplication1.Controllers
             {
                 try
                 {
-                    _context.Update(studio);
-                    await _context.SaveChangesAsync();
+                    await _studioService.UpdateAndSave(studio);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!StudioExists(studio.StudioId))
+                    if (!_studioService.StudioExists(studio.StudioId))
                     {
                         return NotFound();
                     }
@@ -124,8 +122,7 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var studio = await _context.Studios
-                .FirstOrDefaultAsync(m => m.StudioId == id);
+            var studio = id.HasValue ? await _studioService.GetStudio(id.Value) : null;
             if (studio == null)
             {
                 return NotFound();
@@ -139,15 +136,8 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var studio = await _context.Studios.FindAsync(id);
-            _context.Studios.Remove(studio);
-            await _context.SaveChangesAsync();
+            await _studioService.DeleteAndSave(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool StudioExists(int id)
-        {
-            return _context.Studios.Any(e => e.StudioId == id);
         }
     }
 }
