@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +51,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Movies/Create
+        [Authorize]
         public async Task<IActionResult> Create()
         {
             ViewData["DirectorId"] = new SelectList(await _directorService.GetDirectors(), "DirectorId", "Name");
@@ -75,6 +77,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Movies/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -129,6 +132,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Movies/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)

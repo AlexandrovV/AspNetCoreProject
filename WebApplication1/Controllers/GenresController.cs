@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,6 +42,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Genres/Create
+        [Authorize]
         public IActionResult Create()
         {
             return View();
@@ -62,6 +64,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Genres/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -112,6 +115,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Genres/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)

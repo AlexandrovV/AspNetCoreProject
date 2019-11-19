@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@inject SignInManager<IdentityUser> signInManager;
+
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -37,6 +39,19 @@
                     <li><a asp-area="" asp-controller="Studios" asp-action="Index">Studios</a></li>
                     <li><a asp-area="" asp-controller="Reviews" asp-action="Index">Reviews</a></li>
                     <li><a asp-area="" asp-controller="Reviewers" asp-action="Index">Reviewers</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    @if (signInManager.IsSignedIn(User))
+                    {
+                        <li><a asp-area="" asp-controller="" asp-action="">@User.Identity.Name</a></li>
+                        <li><a asp-area="" asp-controller="Account" asp-action="Logout">Logout</a></li>
+                    }
+                    else
+                    {
+                        <li><a asp-area="" asp-controller="Account" asp-action="Register">Registration</a></li>
+                        <li><a asp-area="" asp-controller="Account" asp-action="Login">Login</a></li>
+                    }
+
                 </ul>
             </div>
         </div>
