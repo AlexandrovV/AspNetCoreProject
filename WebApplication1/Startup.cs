@@ -35,6 +35,12 @@ namespace WebApplication1
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromSeconds(20);
+            });
+            services.AddDistributedMemoryCache();
+
             services.AddDbContext<DatabaseContext>(options =>
             {
                 options.UseSqlite("Filename=database.db");
@@ -43,7 +49,7 @@ namespace WebApplication1
             services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<DatabaseContext>();
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1).AddSessionStateTempDataProvider();
             services.AddScoped<ActorService>();
             services.AddScoped<DirectorService>();
             services.AddScoped<GenreService>();
@@ -75,6 +81,7 @@ namespace WebApplication1
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseSession();
             app.UseCookiePolicy();
 
             app.UseAuthentication();
