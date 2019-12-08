@@ -13,7 +13,11 @@ namespace WebApplication1.Controllers
     {
         public IActionResult Index()
         {
-            HttpContext.Session.SetString("user", User.Identity.Name);
+            var username = User.Identity.Name;
+            if (username != null)
+            {
+                HttpContext.Session.SetString("user", username);
+            }
             TempData["user"] = "TempData='" + User.Identity.Name + "'";
             return View();
         }
