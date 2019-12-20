@@ -28,12 +28,14 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Movies
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> Index()
         {
             return View(await _movieService.GetMovies());
         }
 
         // GET: Movies/Details/5
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -51,7 +53,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Movies/Create
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create()
         {
             ViewData["DirectorId"] = new SelectList(await _directorService.GetDirectors(), "DirectorId", "Name");
@@ -62,6 +64,7 @@ namespace WebApplication1.Controllers
         // POST: Movies/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("MovieId,Name,ShortDescription,StudioId,DirectorId")] Movie movie)
@@ -77,7 +80,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Movies/Edit/5
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -98,6 +101,7 @@ namespace WebApplication1.Controllers
         // POST: Movies/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("MovieId,Name,ShortDescription,StudioId,DirectorId")] Movie movie)
@@ -132,7 +136,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Movies/Delete/5
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -150,6 +154,7 @@ namespace WebApplication1.Controllers
         }
 
         // POST: Movies/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

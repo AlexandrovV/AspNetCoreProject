@@ -22,12 +22,14 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Studios
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> Index()
         {
             return View(await _studioService.GetStudios());
         }
 
         // GET: Studios/Details/5
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -45,7 +47,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Studios/Create
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
@@ -54,6 +56,7 @@ namespace WebApplication1.Controllers
         // POST: Studios/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("StudioId,Name")] Studio studio)
@@ -67,7 +70,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Studios/Edit/5
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -86,6 +89,7 @@ namespace WebApplication1.Controllers
         // POST: Studios/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("StudioId,Name")] Studio studio)
@@ -118,7 +122,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Studios/Delete/5
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -136,6 +140,7 @@ namespace WebApplication1.Controllers
         }
 
         // POST: Studios/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

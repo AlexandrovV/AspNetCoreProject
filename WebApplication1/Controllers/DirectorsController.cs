@@ -21,13 +21,17 @@ namespace WebApplication1.Controllers
             _directorService = directorService;
         }
 
+
         // GET: Directors
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> Index()
         {
             return View(await _directorService.GetDirectors());
         }
 
+
         // GET: Directors/Details/5
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -45,15 +49,17 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Directors/Create
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
         }
 
+
         // POST: Directors/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("DirectorId,Name")] Director director)
@@ -67,7 +73,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Directors/Edit/5
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -83,9 +89,11 @@ namespace WebApplication1.Controllers
             return View(director);
         }
 
+
         // POST: Directors/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("DirectorId,Name")] Director director)
@@ -118,7 +126,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Directors/Delete/5
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -136,6 +144,7 @@ namespace WebApplication1.Controllers
         }
 
         // POST: Directors/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

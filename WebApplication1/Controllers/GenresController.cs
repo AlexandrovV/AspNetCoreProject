@@ -19,12 +19,14 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Genres
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> Index()
         {
             return View(await _genreService.GetGenres());
         }
 
         // GET: Genres/Details/5
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -42,15 +44,17 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Genres/Create
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
         }
 
+
         // POST: Genres/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("GenreId,Name")] Genre genre)
@@ -64,7 +68,7 @@ namespace WebApplication1.Controllers
         }
 
         // GET: Genres/Edit/5
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -80,9 +84,11 @@ namespace WebApplication1.Controllers
             return View(genre);
         }
 
+
         // POST: Genres/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("GenreId,Name")] Genre genre)
@@ -114,8 +120,9 @@ namespace WebApplication1.Controllers
             return View(genre);
         }
 
+
         // GET: Genres/Delete/5
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -132,7 +139,9 @@ namespace WebApplication1.Controllers
             return View(genre);
         }
 
+
         // POST: Genres/Delete/5
+        [Authorize(Roles = "Admin")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

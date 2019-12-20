@@ -63,11 +63,11 @@
     <partial name="_CookieConsentPartial" />
 
     <div class="container body-content">
-        <h4>Session data: @HttpContextAccessor.HttpContext.Session.GetString("user")</h4>
-        <h4>Temp data: @TempData["user"]</h4>
         @RenderBody()
         <hr />
         <footer>
+            <p>Session data: @HttpContextAccessor.HttpContext.Session.GetString("user")</p>
+            <p>Temp data: @TempData["user"]</p>
             <p>&copy; 2019 - WebApplication1</p>
         </footer>
     </div>

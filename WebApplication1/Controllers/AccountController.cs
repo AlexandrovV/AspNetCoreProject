@@ -34,7 +34,7 @@ namespace WebApplication1.Controllers
             {
                 var user = new IdentityUser { UserName = model.Email, Email = model.Email };
                 var result = await userManager.CreateAsync(user, model.Password);
-
+                userManager.AddToRoleAsync(user, "User");
                 if (result.Succeeded)
                 {
                     await signInManager.SignInAsync(user, isPersistent: false);
